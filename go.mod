@@ -1,6 +1,6 @@
 module github.com/voi-oss/svc
 
-go 1.17
+go 1.21.3
 
 require (
 	github.com/blendle/zapdriver v1.3.1
