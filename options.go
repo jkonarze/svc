@@ -6,10 +6,6 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"time"
-
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"go.uber.org/zap"
 )
 
 // Option defines SVC's option type.
@@ -48,50 +44,6 @@ func WithRouter(router *http.ServeMux) Option {
 func WithLogLevelHandlers() Option {
 	return func(s *SVC) error {
 		s.Router.Handle("/loglevel", s.atom)
-
-		return nil
-	}
-}
-
-// WithHTTPServer is an option that adds an internal HTTP server exposing
-// observability routes.
-func WithHTTPServer(port string) Option {
-	return func(s *SVC) error {
-		httpServer := newHTTPServer(port, s.Router, s.stdLogger)
-		s.AddWorker("internal-http-server", httpServer)
-
-		return nil
-	}
-}
-
-// WithMetrics is an option that exports metrics via prometheus.
-func WithMetrics() Option {
-	return func(s *SVC) error {
-		m := prometheus.NewGauge(
-			prometheus.GaugeOpts{
-				Name:        "svc_up",
-				Help:        "Is the service in this pod up.",
-				ConstLabels: prometheus.Labels{"version": s.Version, "name": s.Name},
-			},
-		)
-		m.Set(1)
-
-		if err := s.internalRegister.Register(m); err != nil {
-			s.logger.Error("svc_up could not register", zap.Error(err))
-		}
-
-		return nil
-	}
-}
-
-// WithMetricsHandler is an option that exposes Prometheus metrics for a
-// Prometheus scraper.
-func WithMetricsHandler() Option {
-	return func(s *SVC) error {
-		s.Router.Handle("/metrics",
-			promhttp.InstrumentMetricHandler(
-				s.internalRegister, /* Register */
-				http.HandlerFunc(s.metricsHandler)))
 
 		return nil
 	}
@@ -139,7 +91,10 @@ func WithHealthz() Option {
 				return
 			}
 
-			s.logger.Warn("liveliness probe failed", zap.Errors("errors", errs))
+			s.logger.
+				Warn().
+				Any("errors", errs).
+				Msg("liveliness probe failed")
 			b, err := json.Marshal(map[string]interface{}{"errors": errs})
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -161,7 +116,10 @@ func WithHealthz() Option {
 				}
 			}
 			if len(errs) > 0 {
-				s.logger.Warn("Ready check failed", zap.Errors("errors", errs))
+				s.logger.
+					Warn().
+					Any("errors", errs).
+					Msg("Ready check failed")
 				b, err := json.Marshal(map[string]interface{}{"errors": errs})
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)

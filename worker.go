@@ -1,13 +1,12 @@
 package svc
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
-	"go.uber.org/zap"
+	"github.com/rs/zerolog"
 )
 
 // Worker defines a SVC worker.
 type Worker interface {
-	Init(*zap.Logger) error
+	Init(logger *zerolog.Logger) error
 	Run() error
 	Terminate() error
 }
@@ -20,10 +19,4 @@ type Aliver interface {
 // Healther defines a worker that can report his healthz status.
 type Healther interface {
 	Healthy() error
-}
-
-// Gatherer is a place for workers to return a prometheus.Gatherer
-// for SVC to serve on the metrics endpoint
-type Gatherer interface {
-	Gatherer() prometheus.Gatherer
 }
