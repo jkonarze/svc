@@ -38,17 +38,6 @@ func WithRouter(router *http.ServeMux) Option {
 	}
 }
 
-// WithLogLevelHandlers is an option that sets up HTTP routes to read write the
-// log level. This option must be passed after other options that manipulate the
-// logger to have any effect on that logger option.
-func WithLogLevelHandlers() Option {
-	return func(s *SVC) error {
-		s.Router.Handle("/loglevel", s.atom)
-
-		return nil
-	}
-}
-
 // WithPProfHandlers is an option that exposes Go's Performance Profiler via
 // HTTP routes.
 func WithPProfHandlers() Option {

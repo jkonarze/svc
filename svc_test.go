@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/avast/retry-go/v4"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 )
 
 func TestWorkerInitOrder(t *testing.T) {
@@ -21,7 +21,7 @@ func TestWorkerInitOrder(t *testing.T) {
 	var actualSeq []string
 
 	w1 := &WorkerMock{
-		InitFunc: func(*zap.Logger) error {
+		InitFunc: func(*zerolog.Logger) error {
 			actualSeq = append(actualSeq, "w1Init")
 			return nil
 		},
@@ -29,7 +29,7 @@ func TestWorkerInitOrder(t *testing.T) {
 		TerminateFunc: func() error { return nil },
 	}
 	w2 := &WorkerMock{
-		InitFunc: func(*zap.Logger) error {
+		InitFunc: func(*zerolog.Logger) error {
 			actualSeq = append(actualSeq, "w2Init")
 			return nil
 		},
@@ -37,7 +37,7 @@ func TestWorkerInitOrder(t *testing.T) {
 		TerminateFunc: func() error { return nil },
 	}
 	w3 := &WorkerMock{
-		InitFunc: func(*zap.Logger) error {
+		InitFunc: func(*zerolog.Logger) error {
 			actualSeq = append(actualSeq, "w3Init")
 			return nil
 		},
@@ -68,7 +68,7 @@ func TestShutdown(t *testing.T) {
 
 	termWorkerCh := make(chan struct{})
 	dummyWorker := &WorkerMock{
-		InitFunc:      func(*zap.Logger) error { return nil },
+		InitFunc:      func(*zerolog.Logger) error { return nil },
 		RunFunc:       func() error { <-termWorkerCh; return nil },
 		TerminateFunc: func() error { termWorkerCh <- struct{}{}; return nil },
 	}
@@ -92,7 +92,7 @@ func TestShutdown(t *testing.T) {
 
 func TestContextCanceled(t *testing.T) {
 	dummyWorker := &WorkerMock{
-		InitFunc: func(*zap.Logger) error { return nil },
+		InitFunc: func(*zerolog.Logger) error { return nil },
 		RunFunc: func() error {
 			return fmt.Errorf("stopped: %w", context.Canceled)
 		},
@@ -110,14 +110,14 @@ func TestContextCanceled(t *testing.T) {
 var _ Worker = (*WorkerMock)(nil)
 
 type WorkerMock struct {
-	InitFunc      func(*zap.Logger) error
+	InitFunc      func(*zerolog.Logger) error
 	RunFunc       func() error
 	TerminateFunc func() error
 	AliveFunc     func() error
 	HealthyFunc   func() error
 }
 
-func (w *WorkerMock) Init(l *zap.Logger) error {
+func (w *WorkerMock) Init(l *zerolog.Logger) error {
 	if w.InitFunc == nil {
 		panic("WorkerMock: Init was called but InitFunc was not mocked!")
 	}
@@ -162,7 +162,7 @@ func TestSVC_AddWorkerWithInitRetry(t *testing.T) {
 		{
 			name: "succeeds after 3 attempts, with max  10 attempts",
 			w: &WorkerMock{
-				InitFunc: func(*zap.Logger) error {
+				InitFunc: func(*zerolog.Logger) error {
 					if attempts < 3 {
 						attempts++
 						return fmt.Errorf("failed")
@@ -178,7 +178,7 @@ func TestSVC_AddWorkerWithInitRetry(t *testing.T) {
 		{
 			name: "fails after 3 attempts, with max 3 attempts",
 			w: &WorkerMock{
-				InitFunc: func(*zap.Logger) error {
+				InitFunc: func(*zerolog.Logger) error {
 					attempts++
 					return fmt.Errorf("failed")
 				},

@@ -3,11 +3,12 @@ package svc
 import (
 	"context"
 	"errors"
-	"github.com/rs/zerolog"
 	"log"
 	"net"
 	"net/http"
 	"time"
+
+	"github.com/rs/zerolog"
 )
 
 var _ Worker = (*httpServer)(nil)

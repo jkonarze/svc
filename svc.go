@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/rs/zerolog"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,7 +12,7 @@ import (
 	"time"
 
 	"github.com/avast/retry-go/v4"
-	"go.uber.org/zap"
+	"github.com/rs/zerolog"
 )
 
 const (
@@ -34,11 +32,7 @@ type SVC struct {
 	TerminationWaitPeriod  time.Duration
 	signals                chan os.Signal
 
-	logger             *zerolog.Logger
-	zapOpts            []zap.Option
-	stdLogger          *log.Logger
-	atom               zap.AtomicLevel
-	loggerRedirectUndo func()
+	logger *zerolog.Logger
 
 	workers             map[string]Worker
 	workerInitRetryOpts map[string][]retry.Option
