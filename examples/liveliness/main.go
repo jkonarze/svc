@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/rs/zerolog"
 	"time"
 
 	"github.com/voi-oss/svc"
-	"go.uber.org/zap"
 )
 
 var _ svc.Worker = (*dummyWorker)(nil)
@@ -14,8 +14,8 @@ type dummyWorker struct {
 	state int
 }
 
-func (d *dummyWorker) Init(*zap.Logger) error { return nil }
-func (d *dummyWorker) Terminate() error       { return nil }
+func (d *dummyWorker) Init(*zerolog.Logger) error { return nil }
+func (d *dummyWorker) Terminate() error           { return nil }
 func (d *dummyWorker) Run() error {
 
 	time.Sleep(1 * time.Second)
@@ -31,7 +31,7 @@ func (d *dummyWorker) Alive() error {
 }
 
 func main() {
-	s, err := svc.New("minimal-service", "1.0.0", svc.WithHTTPServer("9090"), svc.WithHealthz())
+	s, err := svc.New("minimal-service", "1.0.0", svc.WithHealthz())
 	svc.MustInit(s, err)
 
 	w := &dummyWorker{
